@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c ' *)",
+      "Bash(npm ls *)",
+      "Bash(npm install *)",
+      "Bash(npm root *)",
+      "Bash(NODE_PATH=\"C:/Users/priya/AppData/Roaming/npm/node_modules\" node build_report.js)",
+      "Bash(python \"C:\\\\Users\\\\priya\\\\AppData\\\\Roaming\\\\Claude\\\\local-agent-mode-sessions\\\\skills-plugin\\\\8b6b778d-5287-4125-be44-dc9ca4e8c6b6\\\\15b5e254-4091-492a-8a93-ec2bb9c4fc34\\\\skills\\\\docx\\\\scripts\\\\office\\\\validate.py\" SundaySarthak_Report.docx)",
+      "Bash(pip install *)",
+      "Bash(PYTHONUTF8=1 PYTHONIOENCODING=utf-8 python \"C:\\\\Users\\\\priya\\\\AppData\\\\Roaming\\\\Claude\\\\local-agent-mode-sessions\\\\skills-plugin\\\\8b6b778d-5287-4125-be44-dc9ca4e8c6b6\\\\15b5e254-4091-492a-8a93-ec2bb9c4fc34\\\\skills\\\\docx\\\\scripts\\\\office\\\\validate.py\" SundaySarthak_Report.docx)",
+      "PowerShell($p = @\\(\"C:\\\\Program Files\\\\LibreOffice\\\\program\\\\soffice.exe\",\"C:\\\\Program Files \\(x86\\)\\\\LibreOffice\\\\program\\\\soffice.exe\"\\); $found = $p | Where-Object { Test-Path $_ }; if \\($found\\) { $found } else { \"LibreOffice not found\" })"
+    ]
+  }
+}

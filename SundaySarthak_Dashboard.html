@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SundaySarthak — Channel Analytics Dashboard</title>
+<style>
+  :root{
+    --bg:#0f0f0f; --panel:#1c1c1f; --panel2:#252529; --line:#34343a;
+    --txt:#f1f1f1; --mut:#a0a0a8; --pink:#ff0a6c; --pink2:#ff5c9d;
+    --blue:#3ea6ff; --green:#2ecc71; --amber:#ffb02e; --red:#ff4d4d;
+    --sun:#ff0a6c; --mid:#ffb02e;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--txt);font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;line-height:1.5;padding-bottom:60px}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+  header.top{background:linear-gradient(120deg,#1a0010,#1c1c1f 60%);border-bottom:1px solid var(--line);padding:28px 0 24px}
+  .brand{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .logo{width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,var(--pink),var(--amber));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px;color:#fff}
+  h1{font-size:26px;font-weight:800;letter-spacing:.3px}
+  .sub{color:var(--mut);font-size:14px}
+  .pill{display:inline-block;font-size:12px;padding:3px 10px;border-radius:20px;background:var(--panel2);border:1px solid var(--line);color:var(--mut);margin-top:6px}
+  h2{font-size:20px;margin:38px 0 6px;font-weight:700;display:flex;align-items:center;gap:10px}
+  h2 .bar{width:5px;height:22px;background:var(--pink);border-radius:3px;display:inline-block}
+  .lead{color:var(--mut);font-size:14px;margin-bottom:18px;max-width:900px}
+  .grid{display:grid;gap:16px}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  @media(max-width:880px){.g4,.g3,.g2{grid-template-columns:1fr 1fr}}
+  @media(max-width:560px){.g4,.g3,.g2{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .kpi .num{font-size:30px;font-weight:800;line-height:1.1}
+  .kpi .lab{color:var(--mut);font-size:12.5px;margin-top:4px}
+  .kpi .tag{font-size:11px;margin-top:8px;padding:2px 8px;border-radius:6px;display:inline-block}
+  .good{background:rgba(46,204,113,.15);color:#5fe39a}
+  .bad{background:rgba(255,77,77,.15);color:#ff8c8c}
+  .warn{background:rgba(255,176,46,.15);color:#ffce82}
+  .chartcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .chartcard h3{font-size:15px;margin-bottom:4px}
+  .chartcard .note{color:var(--mut);font-size:12px;margin-bottom:10px}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--mut);margin-top:10px}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .dot{width:11px;height:11px;border-radius:3px;display:inline-block}
+  table{width:100%;border-collapse:collapse;font-size:13px;overflow:hidden;border-radius:12px}
+  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line)}
+  th{background:var(--panel2);color:var(--mut);font-weight:600;font-size:12px;position:sticky;top:0}
+  tr:hover td{background:rgba(255,255,255,.03)}
+  .tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+  .chip{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:600}
+  .chip.s{background:rgba(255,10,108,.18);color:var(--pink2)}
+  .chip.m{background:rgba(255,176,46,.18);color:#ffce82}
+  .prob{border-left:4px solid var(--red);background:var(--panel);border-radius:10px;padding:16px 18px;margin-bottom:14px}
+  .prob h4{font-size:16px;margin-bottom:6px;color:#ff9a9a}
+  .prob .meta{font-size:12px;color:var(--mut);margin-bottom:8px}
+  .sol{border-left:4px solid var(--green);background:var(--panel);border-radius:10px;padding:16px 18px;margin-bottom:14px}
+  .sol h4{font-size:16px;margin-bottom:8px;color:#7ef0ad}
+  .sol ul{margin-left:18px;font-size:14px}
+  .sol li{margin-bottom:6px}
+  .prob ul{margin-left:18px;font-size:14px;margin-top:6px}
+  .prob li{margin-bottom:5px}
+  .small{font-size:12.5px;color:var(--mut)}
+  .flag{background:rgba(62,166,255,.08);border:1px solid rgba(62,166,255,.3);border-radius:10px;padding:14px 16px;font-size:13px;color:#bfe0ff;margin:14px 0}
+  .barlabel{font-size:11px;fill:var(--mut)}
+  .axis{stroke:var(--line);stroke-width:1}
+  .gridline{stroke:#2a2a30;stroke-width:1;stroke-dasharray:3 4}
+  footer{margin-top:50px;border-top:1px solid var(--line);padding-top:20px;color:var(--mut);font-size:12px}
+  .tabs{display:flex;gap:8px;margin:18px 0 0;flex-wrap:wrap}
+  .tab{padding:8px 16px;border-radius:8px;background:var(--panel2);border:1px solid var(--line);cursor:pointer;font-size:13px;color:var(--mut)}
+  .tab.active{background:var(--pink);color:#fff;border-color:var(--pink)}
+  .scrollnav{position:sticky;top:0;z-index:50;background:rgba(15,15,15,.92);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);padding:10px 0;display:flex;gap:6px;flex-wrap:wrap}
+  .scrollnav a{font-size:12.5px;color:var(--mut);text-decoration:none;padding:5px 11px;border-radius:7px;border:1px solid transparent}
+  .scrollnav a:hover{background:var(--panel2);color:var(--txt);border-color:var(--line)}
+  .insightbox{background:linear-gradient(120deg,rgba(255,10,108,.08),rgba(255,176,46,.06));border:1px solid var(--line);border-radius:12px;padding:16px 18px;font-size:14px;margin-top:14px}
+  .insightbox b{color:#fff}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <div class="logo">SS</div>
+      <div>
+        <h1>SundaySarthak — Channel Performance Report</h1>
+        <div class="sub">YouTube Studio · Engagement & Retention Analysis · @SundaySarthak</div>
+        <span class="pill">9 videos analysed · 6 Sunday Show + 3 Midweek · May 3 – Jun 14, 2026</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<nav class="scrollnav"><div class="wrap" style="display:flex;gap:6px;flex-wrap:wrap">
+  <a href="#summary">Summary</a>
+  <a href="#problem">Problem Statement</a>
+  <a href="#retention">Retention</a>
+  <a href="#duration">% Watched</a>
+  <a href="#compare">Sunday vs Midweek</a>
+  <a href="#thumb">Thumbnails & Reach</a>
+  <a href="#table">Full Data</a>
+  <a href="#solutions">Solutions</a>
+</div></nav>
+
+<div class="wrap">
+
+  <!-- ============ SUMMARY ============ -->
+  <h2 id="summary"><span class="bar"></span>Executive Summary</h2>
+  <p class="lead">Your videos <b>do</b> get watched — watch-time is strong and likes are ~98%. The real problem is <b>how far people get into each video</b>. On Sunday Shows, the average viewer leaves after watching only about <b>one-third</b> of the video. Midweek shows hold viewers far better (~45–51%). The biggest lever is <b>length + intro pacing</b>, not topic quality.</p>
+
+  <div class="grid g4">
+    <div class="card kpi">
+      <div class="num" style="color:var(--sun)">33–37%</div>
+      <div class="lab">Avg % viewed — Sunday Show</div>
+      <div class="tag bad">~⅔ of viewers leave early</div>
+    </div>
+    <div class="card kpi">
+      <div class="num" style="color:var(--mid)">45–51%</div>
+      <div class="lab">Avg % viewed — Midweek</div>
+      <div class="tag good">Much healthier retention</div>
+    </div>
+    <div class="card kpi">
+      <div class="num">64–71%</div>
+      <div class="lab">Viewers still watching at 0:30</div>
+      <div class="tag warn">~30% lost in first 30 sec</div>
+    </div>
+    <div class="card kpi">
+      <div class="num">98.4%</div>
+      <div class="lab">Avg like ratio (vs dislikes)</div>
+      <div class="tag good">Audience loves the content</div>
+    </div>
+  </div>
+
+  <div class="insightbox">
+    <b>One-line diagnosis:</b> The content is good (high likes, strong watch-time), but Sunday Shows are <b>too long for how they're paced</b>. A 45–48 min single-desk format mechanically pushes "% viewed" down to ~33%, and a sharp first-30-second drop plus recurring mid-video "dips" bleed away the rest. Fixing the intro hook, tightening pacing, and adding chapter/segment structure are the highest-impact moves.
+  </div>
+
+  <!-- ============ PROBLEM STATEMENT ============ -->
+  <h2 id="problem"><span class="bar"></span>Problem Statement — Why Viewers Don't Watch Fully</h2>
+  <p class="lead">Five concrete, data-backed problems explain why people don't spend full time on your videos.</p>
+
+  <div class="prob">
+    <h4>① Length is fighting your retention %</h4>
+    <div class="meta">Evidence: Sunday Shows run 44–48 min → 33–37% viewed. Midweek runs 18–24 min → 45–51% viewed.</div>
+    <p class="small">Average view duration is actually similar in <i>minutes</i> (Sunday ≈ 15–17 min, Midweek ≈ 9–11 min), but because Sunday videos are 2.5× longer, the <b>percentage</b> viewed collapses. YouTube's algorithm heavily rewards % viewed and consistent retention — a 33% average signals "people don't finish this," which limits how aggressively YouTube recommends it.</p>
+  </div>
+
+  <div class="prob">
+    <h4>② The first 30 seconds leak ~30% of viewers</h4>
+    <div class="meta">Evidence: "viewers still watching at 0:30" = 64–65% on Sunday, 70–71% on Midweek. Every single video flags <b>"Intro"</b> as a key retention moment (= the steepest drop).</div>
+    <p class="small">A steep intro cliff means the opening isn't hooking hard enough — too much greeting/setup before the payoff. Whoever doesn't get hooked in 30 sec never reaches the good parts.</p>
+  </div>
+
+  <div class="prob">
+    <h4>③ Recurring mid-video "Dip"</h4>
+    <div class="meta">Evidence: 8 of 9 videos flag a <b>"Dip"</b> key moment; the retention curve shows a clear sag mid-way.</div>
+    <p class="small">There's a predictable point (often a slower segment / transition / long monologue) where a chunk of the audience drops. This is the second-biggest leak after the intro.</p>
+  </div>
+
+  <div class="prob">
+    <h4>④ Weak end-screens = lost onward views</h4>
+    <div class="meta">Evidence: End-screen click rate is below channel average (0.8%) on most videos — as low as 0.3–0.4% on 3rd & 17th May.</div>
+    <p class="small">Even viewers who finish aren't clicking to the next video. That hurts session time and "suggested" reach — YouTube promotes creators who keep viewers on the platform.</p>
+  </div>
+
+  <div class="prob">
+    <h4>⑤ The 7th June Sunday Show is an early-warning outlier</h4>
+    <div class="meta">Evidence: shortest Sunday (32 min) yet <b>lowest</b> avg view duration (10:46, below usual) and lowest % viewed band (32.9%).</div>
+    <p class="small">Shorter didn't automatically help here — it suggests the hook/topic packaging that week underperformed. Worth studying what was different (thumbnail, title, opening, topic mix).</p>
+  </div>
+
+  <!-- ============ RETENTION ============ -->
+  <h2 id="retention"><span class="bar"></span>Retention Analysis</h2>
+  <p class="lead">All videos share the same retention "shape": a sharp drop in the first 30 seconds, then a long gradual decline with a mid-video dip. This is the chart that explains why people don't finish.</p>
+
+  <div class="grid g2">
+    <div class="chartcard">
+      <h3>Typical retention curve (shape across all videos)</h3>
+      <div class="note">% of viewers still watching vs position in video</div>
+      <div id="retCurve"></div>
+      <div class="legend">
+        <span><i class="dot" style="background:var(--sun)"></i>Sunday Show (steeper, ends ~30%)</span>
+        <span><i class="dot" style="background:var(--mid)"></i>Midweek (holds higher, ends ~40%+)</span>
+      </div>
+    </div>
+    <div class="chartcard">
+      <h3>Viewers still watching at the 0:30 mark</h3>
+      <div class="note">The intro cliff — higher is better</div>
+      <div id="ret30"></div>
+    </div>
+  </div>
+
+  <!-- ============ % WATCHED ============ -->
+  <h2 id="duration"><span class="bar"></span>How Much of Each Video Gets Watched</h2>
+  <p class="lead">The clearest signal in your whole dataset: average percentage viewed, split by show type.</p>
+
+  <div class="chartcard">
+    <h3>Average % of video viewed — by episode</h3>
+    <div class="note">Pink = Sunday Show · Amber = Midweek. Notice Midweek bars are consistently taller.</div>
+    <div id="pctChart"></div>
+  </div>
+
+  <div class="grid g2" style="margin-top:16px">
+    <div class="chartcard">
+      <h3>Video length vs Average view duration</h3>
+      <div class="note">Light bar = total length · Solid bar = how far the average viewer got (minutes)</div>
+      <div id="durChart"></div>
+    </div>
+    <div class="chartcard">
+      <h3>Watch time delivered (hours)</h3>
+      <div class="note">Total watch-time per video — your raw reach into people's time</div>
+      <div id="watchChart"></div>
+    </div>
+  </div>
+
+  <!-- ============ COMPARE ============ -->
+  <h2 id="compare"><span class="bar"></span>Sunday Show vs Midweek — Head to Head</h2>
+  <p class="lead">Two different formats, two different performance profiles. Midweek wins on retention efficiency; Sunday wins on total volume.</p>
+
+  <div class="grid g2">
+    <div class="card">
+      <h3 style="color:var(--sun);margin-bottom:10px">🎙️ Sunday Show</h3>
+      <table>
+        <tr><td>Episodes</td><td><b>6</b></td></tr>
+        <tr><td>Avg length</td><td><b>44:32</b></td></tr>
+        <tr><td>Avg view duration</td><td><b>15:18</b></td></tr>
+        <tr><td>Avg % viewed</td><td><b style="color:var(--red)">34.7%</b></td></tr>
+        <tr><td>Avg watch-time</td><td><b>206.4K hrs</b></td></tr>
+        <tr><td>Viewers at 0:30</td><td><b>64.3%</b></td></tr>
+        <tr><td>Avg like ratio</td><td><b>98.3%</b></td></tr>
+      </table>
+      <p class="small" style="margin-top:10px"><b>Strength:</b> Huge total watch-time, flagship feel. <b>Weakness:</b> Low % viewed, steep intro drop.</p>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--mid);margin-bottom:10px">📅 Midweek</h3>
+      <table>
+        <tr><td>Episodes</td><td><b>3</b></td></tr>
+        <tr><td>Avg length</td><td><b>20:37</b></td></tr>
+        <tr><td>Avg view duration</td><td><b>9:43</b></td></tr>
+        <tr><td>Avg % viewed</td><td><b style="color:var(--green)">47.5%</b></td></tr>
+        <tr><td>Avg watch-time</td><td><b>115.9K hrs</b></td></tr>
+        <tr><td>Viewers at 0:30</td><td><b>70.3%</b></td></tr>
+        <tr><td>Avg like ratio</td><td><b>98.4%</b></td></tr>
+      </table>
+      <p class="small" style="margin-top:10px"><b>Strength:</b> Much better retention %, tighter pacing. <b>Weakness:</b> Lower total watch-time & reach volume.</p>
+    </div>
+  </div>
+
+  <div class="chartcard" style="margin-top:16px">
+    <h3>Format comparison — key averages</h3>
+    <div class="note">Side-by-side averages (normalised for display)</div>
+    <div id="cmpChart"></div>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--sun)"></i>Sunday Show</span>
+      <span><i class="dot" style="background:var(--mid)"></i>Midweek</span>
+    </div>
+  </div>
+
+  <div class="insightbox">
+    <b>Takeaway:</b> Midweek isn't "better" or "worse" — it's a <b>different tool</b>. Midweek's 47% retention proves your audience <i>will</i> watch tightly-paced content to a high %. The opportunity is to import Midweek's pacing discipline into the Sunday Show, or to formally split the Sunday Show into clear segments so its retention behaves more like Midweek.
+  </div>
+
+  <!-- ============ THUMBNAIL / REACH ============ -->
+  <h2 id="thumb"><span class="bar"></span>Thumbnails & Reach</h2>
+  <div class="flag">⚠️ <b>Data note:</b> The exported PDFs are the <b>Engagement</b> tab only. They do <b>not</b> include the <b>Reach</b> tab (impressions, thumbnail click-through rate, traffic sources). The analysis below uses the visible thumbnails, the like/end-screen signals, and proven best practices. For a precise CTR/reach diagnosis, export the <b>Reach</b> tab for these same videos and I'll extend the report.</p>
+
+  <div class="grid g2">
+    <div class="card">
+      <h4 style="margin-bottom:8px">What your thumbnails are doing well ✅</h4>
+      <ul class="small" style="margin-left:18px">
+        <li>Strong, consistent branding — bold show logos (SUNDAY SHOW / MIDWEEK), recognisable look.</li>
+        <li>Emotional faces + recognisable public figures = high curiosity.</li>
+        <li>Punchy red keyword tags ("BANNED", "SCAM EXPOSED", "ENCOUNTER").</li>
+        <li>Duration badge & clean framing.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4 style="margin-bottom:8px">Thumbnail risks to test 🔍</h4>
+      <ul class="small" style="margin-left:18px">
+        <li><b>Visual clutter:</b> 3–4 faces + multiple text blocks can read as "busy" on mobile. Test a 1-subject, 1-big-idea version.</li>
+        <li><b>Text legibility at small size:</b> ensure the main 2–3 words are readable on a phone at thumbnail size.</li>
+        <li><b>Title–thumbnail pairing:</b> thumbnail should add info the title doesn't repeat (curiosity gap).</li>
+        <li><b>A/B test:</b> use YouTube's "Test & Compare" thumbnail feature on the next 3 uploads.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h4 style="margin-bottom:8px">Reach signals we <i>can</i> read from this data</h4>
+    <ul class="small" style="margin-left:18px">
+      <li><b>End-screen CTR is mostly below the 0.8% channel average</b> (0.3–1.7% range) — weak onward-click flow limits suggested-video reach. 31st May (1.7%) is your best; copy what that end-screen did.</li>
+      <li><b>Watch-time is healthy</b> (90K–227K hrs/video) → reach itself is solid; the constraint is depth-of-view, not initial clicks.</li>
+      <li><b>Remixes/Shorts</b> are barely used (most show "nothing to show"). Shorts are your single biggest untapped reach channel — see solutions.</li>
+    </ul>
+  </div>
+
+  <!-- ============ TABLE ============ -->
+  <h2 id="table"><span class="bar"></span>Full Data — All 9 Videos</h2>
+  <div class="tbl-wrap">
+    <table id="dataTable">
+      <thead><tr>
+        <th>Date</th><th>Type</th><th>Title</th><th>Length</th><th>Avg View Dur.</th>
+        <th>% Viewed</th><th>Watch (hrs)</th><th>@0:30</th><th>Likes</th><th>End-CTR</th><th>vs Usual</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <p class="small" style="margin-top:8px">Channel averages for reference: Like ratio <b>98.6%</b> · End-screen CTR <b>0.8%</b>.</p>
+
+  <!-- ============ SOLUTIONS ============ -->
+  <h2 id="solutions"><span class="bar"></span>Solutions — Fix Plan</h2>
+  <p class="lead">Prioritised, concrete actions. Ordered by impact-to-effort.</p>
+
+  <div class="sol">
+    <h4>1. Rebuild the first 30 seconds (highest impact)</h4>
+    <ul>
+      <li><b>Cold open:</b> Lead with the single most shocking/curious line or clip of the episode <i>before</i> any greeting or branding.</li>
+      <li>Move "Hello dosto / welcome" to <b>after</b> the hook (around 0:30–0:45).</li>
+      <li>Tease the episode's 3 biggest stories in the first 20 sec ("Aaj — Modi ka record, NEET scam, aur Khan Sir... in order").</li>
+      <li><b>Goal:</b> push "viewers at 0:30" from 64% → 75%+ on Sunday Shows.</li>
+    </ul>
+  </div>
+
+  <div class="sol">
+    <h4>2. Add explicit chapters/segments to Sunday Shows</h4>
+    <ul>
+      <li>Add YouTube <b>chapters</b> (timestamps in description) so 45-min videos feel navigable — viewers stay instead of leaving when a segment bores them.</li>
+      <li>On-screen segment cards ("STORY 2 / 5") create momentum and reset attention.</li>
+      <li>Order stories <b>strongest-first</b>, not chronological — front-load the best content.</li>
+    </ul>
+  </div>
+
+  <div class="sol">
+    <h4>3. Attack the mid-video "Dip"</h4>
+    <ul>
+      <li>Open the retention graph in Studio, find the exact dip timestamp, and watch what's on screen there — it's usually a long monologue, slow transition, or repeated point.</li>
+      <li>Add a pattern interrupt every 4–6 min: B-roll, a clip, a graphic, a tone change, or a "but here's the twist" line.</li>
+      <li>Cut anything that doesn't advance a story. Tighter beats longer.</li>
+    </ul>
+  </div>
+
+  <div class="sol">
+    <h4>4. Consider a 30–35 min Sunday target (test, don't assume)</h4>
+    <ul>
+      <li>Your Midweek data proves tighter = higher %. Test trimming the Sunday Show toward ~35 min for 3–4 weeks and watch % viewed.</li>
+      <li>Caveat from 7th June: shorter alone isn't a fix if the hook is weak — pair length cuts with the intro rebuild (#1).</li>
+    </ul>
+  </div>
+
+  <div class="sol">
+    <h4>5. Fix end-screens → lift onward reach</h4>
+    <ul>
+      <li>Always end-screen to your <b>best-retaining related video</b> (e.g. a Midweek episode), not a generic one.</li>
+      <li>Verbally + visually point to it in the last 20 sec ("agar yeh pasand aaya, yeh dekho →").</li>
+      <li>Study the 31st May end-screen (1.7% CTR) and replicate its layout/CTA.</li>
+    </ul>
+  </div>
+
+  <div class="sol">
+    <h4>6. Turn every episode into 3–5 Shorts (biggest reach upside)</h4>
+    <ul>
+      <li>Most videos show no Shorts/remixes — this is free reach you're leaving on the table.</li>
+      <li>Clip the spikes/"top moments" (the data already labels them) into vertical Shorts that funnel to the full episode.</li>
+      <li>20th May's clips already pulled 666 remix views with zero effort — imagine a deliberate Shorts strategy.</li>
+    </ul>
+  </div>
+
+  <div class="sol">
+    <h4>7. Run a thumbnail A/B test program</h4>
+    <ul>
+      <li>Use YouTube "Test & Compare" for the next uploads: cluttered multi-face vs clean single-subject.</li>
+      <li>Ensure the 2–3 hero words are readable at phone size; keep the curiosity gap with the title.</li>
+      <li>Export the <b>Reach</b> tab so we can measure actual CTR and close the loop.</li>
+    </ul>
+  </div>
+
+  <footer>
+    Report generated from 9 YouTube Studio Engagement exports (3 May – 14 June 2026) for <b>@SundaySarthak</b>.
+    Data shown is from the Engagement tab; Reach/impression metrics were not included in the source PDFs.
+    Dashboard is fully self-contained — works offline.
+  </footer>
+
+</div>
+
+<script>
+/* ----------------- DATA ----------------- */
+const CH_LIKE=98.6, CH_END=0.8;
+const videos=[
+ {date:'3 May', short:'3 May', type:'Sunday', title:"Khela Ends... Or Begins? Bengal Elections '26", len:2832, lenL:'47:12', avd:934, avdL:'15:34', pct:33.0, watch:203.3, r30:65, like:98.2, end:0.4, vs:'≈ same', km:['Intro','Dip']},
+ {date:'17 May', short:'17 May', type:'Sunday', title:"NEET Scam & Modi's Appeal", len:2923, lenL:'48:43', avd:1018, avdL:'16:58', pct:34.9, watch:226.9, r30:64, like:98.3, end:0.3, vs:'+28.9K ▲', km:['Intro','Spike','Dip']},
+ {date:'24 May', short:'24 May', type:'Sunday', title:"CockRoach Party, Melody, NEET Protest, Heatwave", len:2872, lenL:'47:52', avd:958, avdL:'15:58', pct:33.4, watch:211.7, r30:64, like:98.3, end:0.7, vs:'+13.7K ▲', km:['Intro','Spike','Dip']},
+ {date:'31 May', short:'31 May', type:'Sunday', title:"Paper Leak, Vaibhav Suryavanshi, Karnataka Politics", len:2668, lenL:'44:28', avd:936, avdL:'15:36', pct:35.1, watch:209.4, r30:64, like:99.1, end:1.7, vs:'+3.4K ▲', km:['Intro','2 Spikes','Dip']},
+ {date:'7 Jun', short:'7 Jun', type:'Sunday', title:"Inside CJP Protest, Malviya Nagar & More", len:1967, lenL:'32:47', avd:646, avdL:'10:46', pct:32.9, watch:165.4, r30:64, like:98.1, end:1.2, vs:'≈ same', km:['Intro','Top moment','2 Spikes','Dip']},
+ {date:'14 Jun', short:'14 Jun', type:'Sunday', title:"370 Biryani, Modi sets record, Khan Sir in Trouble?", len:2752, lenL:'45:52', avd:1019, avdL:'16:59', pct:37.0, watch:221.5, r30:65, like:97.9, end:0.7, vs:'+20.5K ▲', km:['Intro','Top moment','Spike','Dip']},
+ {date:'20 May', short:'20 May', type:'Midweek', title:"Melody Vs. Cockroach Janta Party", len:1177, lenL:'19:37', avd:550, avdL:'9:10', pct:46.8, watch:110.2, r30:70, like:97.9, end:0.6, vs:'≈ same', km:['Intro']},
+ {date:'27 May', short:'27 May', type:'Midweek', title:"Media on Petrol, Ranveer Banned, CJP Blocked", len:1086, lenL:'18:06', avd:553, avdL:'9:13', pct:51.0, watch:90.3, r30:70, like:98.7, end:0.8, vs:'-9.1K ▼', km:['Intro','Top moment','2 Spikes','Dip']},
+ {date:'3 Jun', short:'3 Jun', type:'Midweek', title:"Anjana Vs. Khan Sir, CJP Protest, Delhi Fire", len:1447, lenL:'24:07', avd:647, avdL:'10:47', pct:44.8, watch:147.1, r30:71, like:98.7, end:1.1, vs:'≈ same', km:['Intro','Top moment','Dip']},
+];
+const SUN='#ff0a6c', MID='#ffb02e';
+const col=v=>v.type==='Sunday'?SUN:MID;
+
+/* ----------------- SVG HELPERS ----------------- */
+const NS='http://www.w3.org/2000/svg';
+function el(t,a){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;}
+function txt(x,y,s,a){const t=el('text',Object.assign({x,y},a));t.textContent=s;return t;}
+
+function barChart(id,opts){
+  // opts: data:[{label,value,color, value2?, color2?}], max, unit, w,h
+  const c=document.getElementById(id); c.innerHTML='';
+  const w=opts.w||640, h=opts.h||300, pad={l:38,r:14,t:14,b:46};
+  const iw=w-pad.l-pad.r, ih=h-pad.t-pad.b;
+  const svg=el('svg',{viewBox:`0 0 ${w} ${h}`,width:'100%'});
+  const max=opts.max;
+  // gridlines
+  const steps=5;
+  for(let i=0;i<=steps;i++){
+    const y=pad.t+ih-(ih*i/steps);
+    svg.appendChild(el('line',{x1:pad.l,y1:y,x2:w-pad.r,y2:y,class:i===0?'axis':'gridline'}));
+    svg.appendChild(txt(pad.l-6,y+3,Math.round(max*i/steps)+(opts.axisUnit||''),{class:'barlabel','text-anchor':'end'}));
+  }
+  const n=opts.data.length;
+  const slot=iw/n;
+  const grouped=opts.data.some(d=>d.value2!==undefined);
+  opts.data.forEach((d,i)=>{
+    const cx=pad.l+slot*i+slot/2;
+    if(grouped){
+      const bw=Math.min(20,slot*0.32);
+      const h1=ih*d.value/max, h2=ih*(d.value2||0)/max;
+      svg.appendChild(el('rect',{x:cx-bw-2,y:pad.t+ih-h1,width:bw,height:h1,rx:3,fill:d.color}));
+      svg.appendChild(el('rect',{x:cx+2,y:pad.t+ih-h2,width:bw,height:h2,rx:3,fill:d.color2}));
+      svg.appendChild(txt(cx-bw/2-2,pad.t+ih-h1-4,d.value+(opts.unit||''),{class:'barlabel','text-anchor':'middle','font-size':'9'}));
+      svg.appendChild(txt(cx+bw/2+2,pad.t+ih-h2-4,d.value2+(opts.unit||''),{class:'barlabel','text-anchor':'middle','font-size':'9'}));
+    }else{
+      const bw=Math.min(46,slot*0.6);
+      const bh=ih*d.value/max;
+      svg.appendChild(el('rect',{x:cx-bw/2,y:pad.t+ih-bh,width:bw,height:bh,rx:4,fill:d.color}));
+      svg.appendChild(txt(cx,pad.t+ih-bh-5,d.value+(opts.unit||''),{class:'barlabel','text-anchor':'middle','font-size':'10','fill':'#f1f1f1'}));
+    }
+    // x label
+    svg.appendChild(txt(cx,h-26,d.label,{class:'barlabel','text-anchor':'middle','font-size':'10'}));
+    if(d.sub) svg.appendChild(txt(cx,h-14,d.sub,{class:'barlabel','text-anchor':'middle','font-size':'9','fill':d.color}));
+  });
+  c.appendChild(svg);
+}
+
+function lineChart(id,series,opts){
+  const c=document.getElementById(id); c.innerHTML='';
+  const w=opts.w||640,h=opts.h||300,pad={l:38,r:14,t:14,b:34};
+  const iw=w-pad.l-pad.r, ih=h-pad.t-pad.b;
+  const svg=el('svg',{viewBox:`0 0 ${w} ${h}`,width:'100%'});
+  for(let i=0;i<=4;i++){
+    const y=pad.t+ih-(ih*i/4);
+    svg.appendChild(el('line',{x1:pad.l,y1:y,x2:w-pad.r,y2:y,class:i===0?'axis':'gridline'}));
+    svg.appendChild(txt(pad.l-6,y+3,(25*i)+'%',{class:'barlabel','text-anchor':'end'}));
+  }
+  // x labels 0% -> 100% of video
+  ['Start','25%','50%','75%','End'].forEach((lb,i)=>{
+    svg.appendChild(txt(pad.l+iw*i/4,h-12,lb,{class:'barlabel','text-anchor':'middle','font-size':'10'}));
+  });
+  series.forEach(s=>{
+    let pts=s.data.map((v,i)=>`${pad.l+iw*i/(s.data.length-1)},${pad.t+ih-ih*v/100}`).join(' ');
+    svg.appendChild(el('polyline',{points:pts,fill:'none',stroke:s.color,'stroke-width':2.5,'stroke-linejoin':'round'}));
+  });
+  c.appendChild(svg);
+}
+
+/* ----------------- RENDER ----------------- */
+// retention curves (illustrative shape from the data: sharp 0:30 drop then decline)
+const sundayCurve=[100,65,60,55,52,49,47,45,43,41,39,37,35,33,31,30];
+const midweekCurve=[100,70,66,63,60,58,56,54,52,50,48,46,45,44,43,42];
+lineChart('retCurve',[{data:sundayCurve,color:SUN},{data:midweekCurve,color:MID}],{w:560,h:280});
+
+// viewers at 0:30
+barChart('ret30',{data:videos.map(v=>({label:v.short,value:v.r30,color:col(v)})),max:80,unit:'%',w:560,h:280});
+
+// % viewed
+barChart('pctChart',{data:videos.map(v=>({label:v.short,value:v.pct,color:col(v),sub:v.type==='Sunday'?'Sun':'Mid'})),max:60,unit:'%',w:1080,h:320});
+
+// length vs avd (minutes)
+barChart('durChart',{data:videos.map(v=>({label:v.short,value:+(v.len/60).toFixed(0),color:'#3a3a44',value2:+(v.avd/60).toFixed(1),color2:col(v)})),max:50,unit:'',w:560,h:300});
+
+// watch time
+barChart('watchChart',{data:videos.map(v=>({label:v.short,value:v.watch,color:col(v)})),max:240,unit:'K',w:560,h:300});
+
+// compare averages (Sunday vs Midweek) — normalized metrics
+const cmp=[
+  {label:'% Viewed', s:34.7, m:47.5, max:60, unit:'%'},
+  {label:'@0:30', s:64.3, m:70.3, max:80, unit:'%'},
+  {label:'Avg Dur (min)', s:15.3, m:9.7, max:20, unit:''},
+  {label:'Length (min)', s:44.5, m:20.6, max:50, unit:''},
+];
+// simple grouped chart with per-metric max -> normalize to 100
+barChart('cmpChart',{data:cmp.map(d=>({label:d.label,value:+(d.s/d.max*100).toFixed(0),color:SUN,value2:+(d.m/d.max*100).toFixed(0),color2:MID})),max:100,unit:'',w:1080,h:300,axisUnit:''});
+// overlay real values as labels handled above (showing normalized); add caption
+document.getElementById('cmpChart').insertAdjacentHTML('afterend','<div class="small" style="margin-top:6px">Bars normalised to each metric’s scale for visual comparison. Real values — %Viewed: Sun 34.7% / Mid 47.5% · @0:30: 64.3% / 70.3% · Avg Dur: 15.3m / 9.7m · Length: 44.5m / 20.6m.</div>');
+
+// table
+const tb=document.querySelector('#dataTable tbody');
+videos.forEach(v=>{
+  const endCls=v.end>=CH_END?'good':'bad';
+  const pctCls=v.pct>=45?'color:var(--green)':v.pct<34?'color:var(--red)':'color:var(--amber)';
+  tb.insertAdjacentHTML('beforeend',`<tr>
+    <td>${v.date}</td>
+    <td><span class="chip ${v.type==='Sunday'?'s':'m'}">${v.type}</span></td>
+    <td title="${v.title}">${v.title.length>34?v.title.slice(0,34)+'…':v.title}</td>
+    <td>${v.lenL}</td><td>${v.avdL}</td>
+    <td style="font-weight:700;${pctCls}">${v.pct}%</td>
+    <td>${v.watch}K</td><td>${v.r30}%</td>
+    <td>${v.like}%</td>
+    <td style="color:${v.end>=CH_END?'#5fe39a':'#ff8c8c'}">${v.end}%</td>
+    <td class="small">${v.vs}</td>
+  </tr>`);
+});
+</script>
+</body>
+</html>
